@@ -1,0 +1,6 @@
+<p>Bold and italics should <em>be
+able</em> to cross lines.
+</p><p>
+But, should //not be...
+</p><p>
+...able// to cross paragraphs.</p>

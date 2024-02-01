@@ -1,0 +1,24 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH SIMPLEWIKI 1 "NOVEMBER 2023" Linux "User Manuals"
+.SH NAME
+simplewiki \- a minimal and composable wiki system
+.SH SYNOPSIS
+.B simplewiki
+.I bare-git-repo otuput-directory
+.SH DESCRIPTION
+.B simplewiki
+renders the contents of the git repository at
+.I bare-git-repo
+to HTML, storing the results in
+.I output-diretory.
+Note that
+.I bare-git-repo
+should point to the actual directory and not the working tree.
+.I output-directory
+is created if it does not exists.
+.SH AUTHOR
+Linus <linus (at) linus dot onl>
+.SH "SEE ALSO"
+.BR git (1)

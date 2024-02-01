@@ -1,0 +1,2 @@
+<pre>Preformatted block
+</pre><pre>Block 2</pre>
