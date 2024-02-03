@@ -1,1 +1,0 @@
-<p><a href="MyPage">My page</a></p>

@@ -1,1 +1,0 @@
-<p><em> <a href="http://www.link.org">http://www.link.org</a> </em></p>

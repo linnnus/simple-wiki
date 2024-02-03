@@ -38,14 +38,7 @@
           installPhase = ''
             mkdir -p $out/bin
             make build/creole-test
-            mv build/creole-test $out/bin/.creole-test-wrapped
-
-            cat >$out/bin/creole-test <<EOF
-            #!${pkgs.bash}/bin/bash
-            cd ${src}
-            exec $out/bin/.creole-test-wrapped
-            EOF
-            chmod +x $out/bin/creole-test
+            mv build/creole-test $out/bin
           '';
         };
 

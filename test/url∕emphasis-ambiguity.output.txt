@@ -1,1 +1,0 @@
-<p>This is an <em>italic</em> text. This is a url: <a href="http://www.wikicreole.org">http://www.wikicreole.org</a>. This is what can go wrong:<em>this should be an italic text</em>.</p>
