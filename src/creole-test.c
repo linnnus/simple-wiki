@@ -305,7 +305,7 @@ next_char:
 
 int main(void) {
 	for (size_t i = 0; i < COUNT(tests); ++i) {
-		printf("Running test: %s... ", tests[i].name);
+		printf("Running test: \x1b[1m%s\x1b[0m... ", tests[i].name);
 
 		static char buffer[1024];
 		FILE *fp = fmemopen(buffer, sizeof(buffer), "wb");
