@@ -24,10 +24,10 @@ uninstall:
 	rmdir $(PREFIX)/share/man/man1 >/dev/null 2>&1 || true
 
 build/simplewiki: build/main.o build/die.o build/arena.o build/strutil.o build/creole.o
-	$(CC) $(LDFLAGS) -o build/simplewiki $^ $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o build/simplewiki $^ $(LDLIBS)
 
 build/creole-test: build/creole-test.o build/creole.o
-	$(CC) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^
 
 build/creole-test.o: src/creole-test.c
 build/main.o: src/main.c src/arena.h src/die.h src/strutil.h src/creole.h
