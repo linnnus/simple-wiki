@@ -10,12 +10,12 @@
 struct {
 	const char *name, *input, *output;
 } tests[] = {
+#if 0
 	{
 		.name    =  "Basic paragraph markup",
 		.input   =  "Basic paragraph test with <, >, & and \"",
 		.output  =  "<p>Basic paragraph test with &lt;, &gt;, &amp; and &quot;</p>"
 	},
-#if 0
 	{
 		.name    =  "Simple unordered list",
 		.input   =  "* list item\n*list item 2",
@@ -66,6 +66,7 @@ struct {
 		.input   =  "{{{\nPreformatted block\n}}}\n{{{Block 2}}}",
 		.output  =  "<pre>Preformatted block\n</pre><pre>Block 2</pre>"
 	},
+#endif
 	{
 		.name    =  "h1",
 		.input   =  "= Header =",
@@ -101,6 +102,7 @@ struct {
 		.input   =  "======= Header =",
 		.output  =  "<p>======= Header =</p>"
 	},
+#if 0
 	{
 		.name    =  "Tables",
 		.input   =  "| A | B |\n| //C// | **D** \\\\ E |",

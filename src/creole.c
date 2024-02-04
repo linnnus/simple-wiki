@@ -32,29 +32,35 @@ int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	}
 
 	unsigned level = 0;
-	while (*begin == '=') {
+	const char *start = begin;
+	while (*start == '=') {
 		level += 1;
-		begin += 1;
+		start += 1;
 	}
-	DEBUG("level %d\n", level);
-
-	while (isspace(*begin)) {
-		begin += 1;
+	if (level > 6) {
+		return 0;
 	}
 
-	const char *stop = end;
-	while (stop + 1 != end && stop[1] != '\n') {
-		stop += 1;
+	while (isspace(*start)) {
+		start += 1;
 	}
-	while (*stop == '=') {
+
+	const char *eol = start;
+	while (eol != end && *eol != '\n') {
+		eol += 1;
+	}
+
+	const char *stop = eol;
+	assert(stop > begin);
+	while (stop[-1] == '=' || isspace(stop[-1])) {
 		stop -= 1;
 	}
 
 	fprintf(out, "<h%u>", level);
-	process(begin, stop, false, out);
+	process(start, stop, false, out);
 	fprintf(out, "</h%u>", level);
 
-	return -(stop - begin);
+	return -(eol - begin);
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {
@@ -73,7 +79,6 @@ void process(const char *begin, const char *end, bool new_block, FILE *out) {
 		// Greedily try all parsers.
 		int affected;
 		for (unsigned i = 0; i < LENGTH(parsers); ++i) {
-			DEBUG("%p\n", parsers[i]);
 			affected = parsers[i](p, end, new_block, out);
 			if (affected) {
 				break;
