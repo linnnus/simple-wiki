@@ -10,6 +10,46 @@
 struct {
 	const char *name, *input, *output;
 } tests[] = {
+	{
+		.name    =  "Two paragraphs next to each other.",
+		.input   =  "Hello,\n\nworld!",
+		.output  =  "<p>Hello,</p><p>world!</p>"
+	},
+	{
+		.name    =  "h1",
+		.input   =  "= Header =",
+		.output  =  "<h1>Header</h1>"
+	},
+	{
+		.name    =  "h2",
+		.input   =  "== Header =",
+		.output  =  "<h2>Header</h2>"
+	},
+	{
+		.name    =  "h3",
+		.input   =  "=== Header =",
+		.output  =  "<h3>Header</h3>"
+	},
+	{
+		.name    =  "h4",
+		.input   =  "==== Header =",
+		.output  =  "<h4>Header</h4>"
+	},
+	{
+		.name    =  "h5",
+		.input   =  "===== Header",
+		.output  =  "<h5>Header</h5>"
+	},
+	{
+		.name    =  "h6",
+		.input   =  "====== Header =",
+		.output  =  "<h6>Header</h6>"
+	},
+	{
+		.name    =  ">h6",
+		.input   =  "======= Header =",
+		.output  =  "<p>======= Header =</p>"
+	},
 #if 0
 	{
 		.name    =  "Basic paragraph markup",
@@ -66,43 +106,6 @@ struct {
 		.input   =  "{{{\nPreformatted block\n}}}\n{{{Block 2}}}",
 		.output  =  "<pre>Preformatted block\n</pre><pre>Block 2</pre>"
 	},
-#endif
-	{
-		.name    =  "h1",
-		.input   =  "= Header =",
-		.output  =  "<h1>Header</h1>"
-	},
-	{
-		.name    =  "h2",
-		.input   =  "== Header =",
-		.output  =  "<h2>Header</h2>"
-	},
-	{
-		.name    =  "h3",
-		.input   =  "=== Header =",
-		.output  =  "<h3>Header</h3>"
-	},
-	{
-		.name    =  "h4",
-		.input   =  "==== Header =",
-		.output  =  "<h4>Header</h4>"
-	},
-	{
-		.name    =  "h5",
-		.input   =  "===== Header",
-		.output  =  "<h5>Header</h5>"
-	},
-	{
-		.name    =  "h6",
-		.input   =  "====== Header =",
-		.output  =  "<h6>Header</h6>"
-	},
-	{
-		.name    =  ">h6",
-		.input   =  "======= Header =",
-		.output  =  "<p>======= Header =</p>"
-	},
-#if 0
 	{
 		.name    =  "Tables",
 		.input   =  "| A | B |\n| //C// | **D** \\\\ E |",

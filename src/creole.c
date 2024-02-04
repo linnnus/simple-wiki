@@ -13,6 +13,7 @@
 
 void process(const char *begin, const char *end, bool new_block, FILE *out);
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out);
+int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
 
 // A parser takes a (sub)string and returns the number of characters consumed, if any.
 //
@@ -20,7 +21,7 @@ int do_headers(const char *begin, const char *end, bool new_block, FILE *out);
 // The sign of the return value determines whether a new block should begin, after the consumed text.
 typedef int (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
 
-static parser_t parsers[] = { do_headers };
+static parser_t parsers[] = { do_headers, do_paragraph };
 
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Headers are block-level elements.
@@ -61,6 +62,29 @@ int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	fprintf(out, "</h%u>", level);
 
 	return -(eol - begin);
+}
+
+int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out) {
+	if (!new_block) { // Paragraphs are block-level elements.
+		return 0;
+	}
+
+	const char *stop = begin + 1;
+	while (stop + 1 < end) {
+		if (stop[0] == '\n' && stop[1] == '\n') {
+			goto found_double_newline;
+		} else {
+			stop += 1;
+		}
+	}
+	stop = end;
+found_double_newline:
+
+	fputs("<p>", out);
+	process(begin, stop, false, out);
+	fputs("</p>", out);
+
+	return -(stop - begin);
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {
