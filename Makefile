@@ -43,5 +43,5 @@ build/:
 	mkdir -p build/
 
 clean:
-	rm -f build/
+	rm -rf build/
 
