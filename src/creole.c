@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define LENGTH(x)  (sizeof(x)/sizeof((x)[0]))
 
@@ -14,6 +15,7 @@
 void process(const char *begin, const char *end, bool new_block, FILE *out);
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out);
 int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
+int do_replacements(const char *begin, const char *end, bool new_block, FILE *out);
 
 // A parser takes a (sub)string and returns the number of characters consumed, if any.
 //
@@ -21,7 +23,7 @@ int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
 // The sign of the return value determines whether a new block should begin, after the consumed text.
 typedef int (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
 
-static parser_t parsers[] = { do_headers, do_paragraph };
+static parser_t parsers[] = { do_headers, do_paragraph, do_replacements };
 
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Headers are block-level elements.
@@ -85,6 +87,34 @@ found_double_newline:
 	fputs("</p>", out);
 
 	return -(stop - begin);
+}
+
+static struct {
+	const char *from, *to;
+} replacements[] = {
+	// Escaped special characters
+	// TODO (e.g. "\\{" should become "{" so users can escape and void it being parsed as markup
+	// Characters that have special meaning in HTML
+	{"<", "&lt;"},
+	{">", "&gt;"},
+	{"\"", "&quot;"},
+	{"&", "&amp;"},
+};
+
+int do_replacements(const char *begin, const char *end, bool new_block, FILE *out)
+{
+	for (unsigned i = 0; i < LENGTH(replacements); ++i) {
+		size_t length = strlen(replacements[i].from);
+		if (end - begin < length) {
+			continue;
+		}
+		if (strncmp(replacements[i].from, begin, length) == 0) {
+			fputs(replacements[i].to, out);
+			return length;
+		}
+	}
+
+	return 0;
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {

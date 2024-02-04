@@ -11,6 +11,11 @@ struct {
 	const char *name, *input, *output;
 } tests[] = {
 	{
+		.name    =  "Basic paragraph markup",
+		.input   =  "Basic paragraph test with <, >, & and \"",
+		.output  =  "<p>Basic paragraph test with &lt;, &gt;, &amp; and &quot;</p>"
+	},
+	{
 		.name    =  "Two paragraphs next to each other.",
 		.input   =  "Hello,\n\nworld!",
 		.output  =  "<p>Hello,</p><p>world!</p>"
@@ -51,11 +56,6 @@ struct {
 		.output  =  "<p>======= Header =</p>"
 	},
 #if 0
-	{
-		.name    =  "Basic paragraph markup",
-		.input   =  "Basic paragraph test with <, >, & and \"",
-		.output  =  "<p>Basic paragraph test with &lt;, &gt;, &amp; and &quot;</p>"
-	},
 	{
 		.name    =  "Simple unordered list",
 		.input   =  "* list item\n*list item 2",
