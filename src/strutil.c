@@ -6,6 +6,7 @@
 #include <stdbool.h>      // bool, false
 #include <stdio.h>        // vsnprintf
 #include <string.h>       // strlen, strncmp
+#include <errno.h>        // errno, E* macros
 
 int aprintf(struct arena *a, char **out, const char *fmt, ...) {
 	va_list ap;
@@ -55,4 +56,66 @@ bool endswith(const char *haystack, const char *needle) {
 	}
 
 	return strncmp(haystack + (haystack_len - needle_len), needle, needle_len) == 0;
+}
+
+char *replace_suffix(struct arena *a, const char *orig, const char *suffix, const char *with)
+{
+	size_t orig_len = strlen(orig);
+	size_t suffix_len = strlen(suffix);
+	size_t with_len = strlen(with);
+
+	size_t new_len = orig_len - suffix_len + with_len;
+	char *new = new(a, char, new_len + 1);
+
+	memcpy(new, orig, orig_len - suffix_len);
+	memcpy(new + orig_len - suffix_len, with, with_len);
+
+	new[new_len] = '\0';
+
+	return new;
+}
+
+// Based on <https://stackoverflow.com/a/779960>
+char *replace(struct arena *a, const char *orig, const char *rep, const char *with) {
+        assert(orig != NULL);
+        assert(rep != NULL);
+
+        char *tmp;      // varies
+
+        int len_rep = strlen(rep);
+        if (len_rep == 0) {
+                errno = EINVAL; // empty rep causes infinite loop during count
+                return NULL;
+        }
+
+        int len_with;
+        if (with == NULL)
+                with = "";
+        len_with = strlen(with);
+
+        // count the number of replacements needed
+        const char *ins; // the next insert point
+        int count;       // number of replacements
+        ins = orig;
+        for (count = 0; (tmp = strstr(ins, rep)) != NULL; ++count) {
+                ins = tmp + len_rep;
+        }
+
+        char *result;
+	tmp = result = new(a, char, strlen(orig) + (len_with - len_rep) * count + 1);
+
+        // first time through the loop, all the variable are set correctly
+        // from here on,
+        // tmp points to the end of the result string
+        // ins points to the next occurrence of rep in orig
+        // orig points to the remainder of orig after "end of rep"
+        while (count--) {
+                ins = strstr(orig, rep);
+                int len_front = ins - orig;
+                tmp = strncpy(tmp, orig, len_front) + len_front;
+                tmp = strcpy(tmp, with) + len_with;
+                orig += len_front + len_rep; // move to next "end of rep"
+        }
+        strcpy(tmp, orig);
+        return result;
 }

@@ -24,6 +24,7 @@ void xmkdir(const char *path, mode_t mode, bool exist_ok) {
 
 void process_other_file(const char *path, const char *source, size_t source_len) {
 	FILE *out = fopen(path, "w");
+	printf("Copying: %s\n", path);
 	if (out == NULL) {
 		die_errno("failed to open %s for writing", path);
 	}
@@ -33,15 +34,14 @@ void process_other_file(const char *path, const char *source, size_t source_len)
 	fclose(out);
 }
 
-void process_markup_file(const char *path, const char *source, size_t source_len) {
-	FILE *out = fopen(path, "w");
+void process_markup_file(struct arena *a, const char *path, const char *source, size_t source_len) {
+	char *out_path = replace_suffix(a, path, ".txt", ".html");
+	printf("Generating: %s\n", out_path);
+	FILE *out = fopen(out_path, "w");
 	if (out == NULL) {
 		die_errno("failed to open %s for writing", path);
 	}
-	int status = render_creole(out, source, source_len);
-	if (status != 0) {
-		fprintf(stderr, "warning: failed to parse: %s (status %d)\n", path, status);
-	}
+	render_creole(out, source, source_len);
 	fclose(out);
 }
 
@@ -65,7 +65,6 @@ void list_tree(struct arena *a, struct git_repository *repo, struct git_tree *tr
 
 		// Construct path to entry.
 		const char *entry_out_path = joinpath(a, prefix, git_tree_entry_name(entry));
-		printf("Generating: %s\n", entry_out_path);
 
 		// entry->obj fail on submodules. just ignore them.
 		struct git_object *obj;
@@ -79,8 +78,8 @@ void list_tree(struct arena *a, struct git_repository *repo, struct git_tree *tr
 						die_git("get source for blob %s", git_oid_tostr_s(git_object_id(obj)));
 					}
 					size_t source_len = git_blob_rawsize(blob);
-					if (endswith(entry_out_path, ".md") && !git_blob_is_binary(blob)) {
-						process_markup_file(entry_out_path, source, source_len);
+					if (endswith(entry_out_path, ".txt") && !git_blob_is_binary(blob)) {
+						process_markup_file(a, entry_out_path, source, source_len);
 					} else {
 						process_other_file(entry_out_path, source, source_len);
 					}

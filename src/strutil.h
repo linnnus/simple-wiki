@@ -23,4 +23,13 @@ char *joinpath(struct arena *a, const char *path_a, const char *path_b);
 // Returns boolean indicating if `haystack` ends with `needle`.
 bool endswith(const char *haystack, const char *needle);
 
+// Replaces the last occurence of `suffix` with `with`.
+// Does NOT check that `orig` ends with `suffix`.
+// Result is allocated in arena.
+char *replace_suffix(struct arena *a, const char *orig, const char *suffix, const char *with);
+
+// Replace all occurences of `rep` in `orig` with `with`.
+// Result is allocated in arena.
+char *replace(struct arena *a, const char *orig, const char *rep, const char *with);
+
 #endif
