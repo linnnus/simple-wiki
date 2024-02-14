@@ -303,6 +303,10 @@ next_char:
        return 0;
 }
 
+int print_escaped_ze(FILE *fp, const char *string) {
+	return print_escaped(fp, string, strlen(string));
+}
+
 int main(void) {
 	for (size_t i = 0; i < COUNT(tests); ++i) {
 		printf("Running test: \x1b[1m%s\x1b[0m... ", tests[i].name);
@@ -315,8 +319,11 @@ int main(void) {
 
 		if (!strneq(buffer, tests[i].output, buffer_length)) {
 			printf("\x1b[31merror\x1b[0m\n");
+			printf("├──── markup: ");
+			print_escaped_ze(stdout, tests[i].input);
+			putchar('\n');
 			printf("├── expected: ");
-			print_escaped(stdout, tests[i].output, strlen(tests[i].output));
+			print_escaped_ze(stdout, tests[i].output);
 			putchar('\n');
 			printf("└─────── got: ");
 			print_escaped(stdout, buffer, buffer_length);
