@@ -55,6 +55,41 @@ struct {
 		.input   =  "======= Header =",
 		.output  =  "<p>======= Header =</p>"
 	},
+	{
+		.name    =  "Unnamed link",
+		.input   =  "[[MyPage]]",
+		.output  =  "<p><a href=\"MyPage\">MyPage</a></p>"
+	},
+	{
+		.name    =  "Named link",
+		.input   =  "[[MyPage|My page]]",
+		.output  =  "<p><a href=\"MyPage\">My page</a></p>"
+	},
+	{
+		.name    =  "Escaped link",
+		.input   =  "A paragraph with an ~[[escaped link]].",
+		.output  =  "<p>A paragraph with an [[escaped link]].</p>"
+	},
+	{
+		.name    =  "Link with an escaped end",
+		.input   =  "[[https://example.com|A link with an escaped ~]] end]]",
+		.output  =  "<p><a href=\"https://example.com\">A link with an escaped ]] end</a></p>"
+	},
+	{
+		.name    =  "Link with empty text",
+		.input   =  "[[https://example.com|]]",
+		.output  =  "<p><a href=\"https://example.com\"></a></p>"
+	},
+	{
+		.name    =  "Link with empty address",
+		.input   =  "[[|Hello]]",
+		.output  =  "<p><a href=\"\">Hello</a></p>"
+	},
+	{
+		.name    =  "Empty link",
+		.input   =  "[[]]",
+		.output  =  "<p><a href=\"\"></a></p>"
+	},
 #if 0
 	{
 		.name    =  "Simple unordered list",
@@ -130,16 +165,6 @@ struct {
 		.input   =  "[[http //example.com/examplepage|Example Page]]",
 		.output  =  "<p>"
 		            "<a href=\"http //example.com/examplepage\">Example Page</a></p>"
-	},
-	{
-		.name    =  "Unnamed link",
-		.input   =  "[[MyPage]]",
-		.output  =  "<p><a href=\"MyPage\">MyPage</a></p>"
-	},
-	{
-		.name    =  "Named link",
-		.input   =  "[[MyPage|My page]]",
-		.output  =  "<p><a href=\"MyPage\">My page</a></p>"
 	},
 	{
 		.name    =  "Image",

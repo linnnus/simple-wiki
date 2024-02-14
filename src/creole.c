@@ -16,6 +16,24 @@ void process(const char *begin, const char *end, bool new_block, FILE *out);
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out);
 int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
 int do_replacements(const char *begin, const char *end, bool new_block, FILE *out);
+int do_link(const char *begin, const char *end, bool new_block, FILE *out);
+
+// Prints string escaped.
+void hprint(FILE *out, const char *begin, const char *end) {
+	for (const char *p = begin; p != end; p++) {
+		if (*p == '&') {
+			fputs("&amp;", out);
+		} else if (*p == '"') {
+			fputs("&quot;", out);
+		} else if (*p == '>') {
+			fputs("&gt;", out);
+		} else if (*p == '<') {
+			fputs("&lt;", out);
+		} else {
+			fputc(*p, out);
+		}
+	}
+}
 
 // A parser takes a (sub)string and returns the number of characters consumed, if any.
 //
@@ -23,7 +41,7 @@ int do_replacements(const char *begin, const char *end, bool new_block, FILE *ou
 // The sign of the return value determines whether a new block should begin, after the consumed text.
 typedef int (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
 
-static parser_t parsers[] = { do_headers, do_paragraph, do_replacements };
+static parser_t parsers[] = { do_headers, do_paragraph, do_link, do_replacements };
 
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Headers are block-level elements.
@@ -93,8 +111,10 @@ static struct {
 	const char *from, *to;
 } replacements[] = {
 	// Escaped special characters
-	// TODO (e.g. "\\{" should become "{" so users can escape and void it being parsed as markup
+	{"~[[", "[["},
+	{"~]]", "]]"}, // NOTE: This pattern is duplicated in do_link().
 	// Characters that have special meaning in HTML
+	// NOTE: These rules are duplicated in hprint().
 	{"<", "&lt;"},
 	{">", "&gt;"},
 	{"\"", "&quot;"},
@@ -115,6 +135,49 @@ int do_replacements(const char *begin, const char *end, bool new_block, FILE *ou
 	}
 
 	return 0;
+}
+
+int do_link(const char *begin, const char *end, bool new_block, FILE *out)
+{
+	// Links start with "[[".
+	if (begin + 2 >= end || begin[0] != '[' || begin[1] != '[') {
+		return 0;
+	}
+	const char *start = begin + 2;
+
+	// Find the matching, unescaped "]]".
+	// Poor man's for...else
+	const char *stop = start - 1;
+	do {
+		stop = strnstr(stop + 1, "]]", end - (stop + 1));
+	} while (stop != NULL && stop[-1] == '~');
+	if (stop == NULL) {
+		return 0;
+	}
+
+	// FIXME: How do we handle WikiWord style links? Should we just append ".html" if is_wikiword()?
+
+	const char *pipe = strnstr(start, "|", stop - start);
+	if (pipe != NULL) {
+		const char *link_address_start = start;
+		const char *link_address_stop = pipe;
+		fprintf(out, "<a href=\"");
+		hprint(out, link_address_start, link_address_stop);
+		fprintf(out, "\">");
+
+		const char *link_text_start = pipe + 1;
+		const char *link_text_stop = stop;
+		process(link_text_start, link_text_stop, false, out);
+		fprintf(out, "</a>");
+	} else {
+		fprintf(out, "<a href=\"");
+		hprint(out, start, stop);
+		fprintf(out, "\">");
+		hprint(out, start, stop); // Don't parse markup when we know it's a link.
+		fprintf(out, "</a>");
+	}
+
+	return stop - start + 4 /* [[]] */;
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {
