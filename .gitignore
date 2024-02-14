@@ -1,6 +1,7 @@
 # Build artifacts
 result
 build/
+references/smu
 
 # Test data (can't figure out nested git repos)
 example-wiki/
@@ -8,3 +9,6 @@ example-wiki.git/
 
 # Application output
 public_html/
+
+# Personal notes. Can't be bothered to commit atomically.
+thoughts.txt
