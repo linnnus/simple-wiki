@@ -1,7 +1,7 @@
 .POSIX:
 .PHONY:  all install uninstall clean
 
-CC     := cc
+CC     ?= cc
 CFLAGS := -W -O $(shell pkg-config --cflags libgit2)
 CFLAGS += -g3 -O0 -fsanitize=address,undefined -fsanitize-trap
 CFLAGS += -Wall -Wextra -Wconversion -Wdouble-promotion \

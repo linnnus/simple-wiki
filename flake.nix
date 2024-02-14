@@ -10,8 +10,9 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        stdenv = pkgs.llvmPackages_14.stdenv;
 
-        simple-wiki = pkgs.stdenv.mkDerivation {
+        simple-wiki = stdenv.mkDerivation {
           pname = "simple-wiki";
           version = "0.0.0";
 
@@ -24,9 +25,15 @@
             mkdir -p $out
             make PREFIX=$out install
           '';
+
+          meta = with pkgs.lib; {
+            description = "Simplest possible wiki system";
+            license = licenses.unlicense;
+            mainProgram = "simplewiki";
+          };
         };
 
-        creole-test = pkgs.stdenv.mkDerivation rec {
+        creole-test = stdenv.mkDerivation rec {
           pname = "creole-test";
           version = simple-wiki.version;
 
@@ -42,9 +49,8 @@
           '';
         };
 
-        devShell = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [ pkg-config ];
-          buildInputs = with pkgs; [ libgit2 ];
+        devShell = (pkgs.mkShell.override { inherit stdenv; }) {
+          inputsFrom = [ simple-wiki creole-test ];
         };
       in
       {
