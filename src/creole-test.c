@@ -11,6 +11,11 @@ struct {
 	const char *name, *input, *output;
 } tests[] = {
 	{
+		.name    =  "Empty input produces no output",
+		.input   =  "",
+		.output  =  ""
+	},
+	{
 		.name    =  "Basic paragraph markup",
 		.input   =  "Basic paragraph test with <, >, & and \"",
 		.output  =  "<p>Basic paragraph test with &lt;, &gt;, &amp; and &quot;</p>"
