@@ -13,12 +13,12 @@
 #define DEBUG(...) (fprintf(stderr, __VA_ARGS__), fflush(stderr))
 
 void process(const char *begin, const char *end, bool new_block, FILE *out);
-int do_headers(const char *begin, const char *end, bool new_block, FILE *out);
-int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
-int do_replacements(const char *begin, const char *end, bool new_block, FILE *out);
-int do_link(const char *begin, const char *end, bool new_block, FILE *out);
-int do_raw_url(const char *begin, const char *end, bool new_block, FILE *out);
-int do_emphasis(const char *begin, const char *end, bool new_block, FILE *out);
+long do_headers(const char *begin, const char *end, bool new_block, FILE *out);
+long do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
+long do_replacements(const char *begin, const char *end, bool new_block, FILE *out);
+long do_link(const char *begin, const char *end, bool new_block, FILE *out);
+long do_raw_url(const char *begin, const char *end, bool new_block, FILE *out);
+long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out);
 
 // Prints string escaped.
 void hprint(FILE *out, const char *begin, const char *end) {
@@ -41,11 +41,11 @@ void hprint(FILE *out, const char *begin, const char *end) {
 //
 // The parameter `new_block` determines whether `begin` points to the beginning of a new block.
 // The sign of the return value determines whether a new block should begin, after the consumed text.
-typedef int (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
+typedef long (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
 
 static parser_t parsers[] = { do_headers, do_paragraph, do_emphasis, do_link, do_raw_url, do_replacements };
 
-int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
+long do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Headers are block-level elements.
 		return 0;
 	}
@@ -86,7 +86,7 @@ int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	return -(eol - begin);
 }
 
-int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out) {
+long do_paragraph(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Paragraphs are block-level elements.
 		return 0;
 	}
@@ -123,11 +123,11 @@ static struct {
 	{"&", "&amp;"},
 };
 
-int do_replacements(const char *begin, const char *end, bool new_block, FILE *out)
+long do_replacements(const char *begin, const char *end, bool new_block, FILE *out)
 {
 	for (unsigned i = 0; i < LENGTH(replacements); ++i) {
 		size_t length = strlen(replacements[i].from);
-		if (end - begin < length) {
+		if ((size_t)(end - begin) < length) {
 			continue;
 		}
 		if (strncmp(replacements[i].from, begin, length) == 0) {
@@ -139,7 +139,7 @@ int do_replacements(const char *begin, const char *end, bool new_block, FILE *ou
 	return 0;
 }
 
-int do_link(const char *begin, const char *end, bool new_block, FILE *out)
+long do_link(const char *begin, const char *end, bool new_block, FILE *out)
 {
 	// Links start with "[[".
 	if (begin + 2 >= end || begin[0] != '[' || begin[1] != '[') {
@@ -182,7 +182,7 @@ int do_link(const char *begin, const char *end, bool new_block, FILE *out)
 	return stop - start + 4 /* [[]] */;
 }
 
-int do_raw_url(const char *begin, const char *end, bool new_block, FILE *out)
+long do_raw_url(const char *begin, const char *end, bool new_block, FILE *out)
 {
 	// Eat a scheme followed by a ":". Here are the relevant rules from RFC 3986.
 	// - URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
@@ -246,7 +246,7 @@ end_url:
 	return q - begin;
 }
 
-int do_emphasis(const char *begin, const char *end, bool new_block, FILE *out) {
+long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (begin + 2 >= end || begin[0] != '/' || begin[1] != '/') {
 		return 0;
 	}
@@ -281,7 +281,7 @@ void process(const char *begin, const char *end, bool new_block, FILE *out) {
 		}
 
 		// Greedily try all parsers.
-		int affected;
+		long affected;
 		for (unsigned i = 0; i < LENGTH(parsers); ++i) {
 			affected = parsers[i](p, end, new_block, out);
 			if (affected) {
@@ -289,7 +289,7 @@ void process(const char *begin, const char *end, bool new_block, FILE *out) {
 			}
 		}
 		if (affected) {
-			p += abs(affected);
+			p += labs(affected);
 		} else {
 			fputc(*p, out);
 			p += 1;

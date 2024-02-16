@@ -82,13 +82,13 @@ char *replace(struct arena *a, const char *orig, const char *rep, const char *wi
 
         char *tmp;      // varies
 
-        int len_rep = strlen(rep);
+        size_t len_rep = strlen(rep);
         if (len_rep == 0) {
                 errno = EINVAL; // empty rep causes infinite loop during count
                 return NULL;
         }
 
-        int len_with;
+        size_t len_with;
         if (with == NULL)
                 with = "";
         len_with = strlen(with);
@@ -111,7 +111,7 @@ char *replace(struct arena *a, const char *orig, const char *rep, const char *wi
         // orig points to the remainder of orig after "end of rep"
         while (count--) {
                 ins = strstr(orig, rep);
-                int len_front = ins - orig;
+                ssize_t len_front = ins - orig;
                 tmp = strncpy(tmp, orig, len_front) + len_front;
                 tmp = strcpy(tmp, with) + len_with;
                 orig += len_front + len_rep; // move to next "end of rep"
