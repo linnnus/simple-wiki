@@ -107,6 +107,12 @@ struct {
 		.output  =  "<p><a href=\"mailto:quandale@dingle.com\">"
 		            "mailto:quandale@dingle.com</a></p>"
 	},
+	{ // This test captures a non-standard (?) special case in the parser.
+		.name    =  "Raw URL followed by full stop",
+		.input   =  "My favorite website is https://wiki.c2.com/.",
+		.output  =  "<p>My favorite website is <a href=\"https://wiki.c2.com/\">"
+		            "https://wiki.c2.com/</a>.</p>"
+	},
 	{
 		.name    =  "Unnamed URL",
 		.input   =  "[[http //example.com/examplepage]]",

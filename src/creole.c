@@ -199,18 +199,41 @@ int do_raw_url(const char *begin, const char *end, bool new_block, FILE *out)
 	}
 	p += 1;
 
-	// Eat the remainder of the URI.
-	// This is not technically correct, but it's a good enough heuristic.
-	const char *q = p;
-	while (q < end && !isspace(*q)) {
-		q += 1;
+        // Eat the remainder of the URI, purely going by what "legal" URI
+        // characters it contains.
+	// See: <https://stackoverflow.com/a/7109208>
+        const char *q = p;
+	while (q < end) {
+		switch (*q) {
+			case '0' ... '9':
+			case 'a' ... 'z':
+			case 'A' ... 'Z':
+			case '-': case '.': case '_': case '~':
+			case ':': case '/': case '?': case '#':
+			case '[': case ']': case '@': case '!':
+			case '$': case '&': case '\'': case '(':
+			case ')': case '*': case '+': case ',':
+			case ';': case '%': case '=':
+				q += 1;
+				break;
+			default:
+				goto end_url;
+		}
 	}
+end_url:
 
         // If there is nothing following the colon, don't accept it as a raw
         // url. Otherwise we'd incorrectly find a link with the "said" protocol
         // here: "And he said: blah blah".
         if (q == p) {
 		return 0;
+	}
+
+        // Special case: If we end on a ".", assume it's a full stop at the end
+        // of a sentence. Here's an example:
+	// My favorite webside is https://cohost.org/.
+        if (q[-1] == '.') {
+		q -= 1;
 	}
 
 	fputs("<a href=\"", out);
