@@ -17,6 +17,7 @@ int do_headers(const char *begin, const char *end, bool new_block, FILE *out);
 int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
 int do_replacements(const char *begin, const char *end, bool new_block, FILE *out);
 int do_link(const char *begin, const char *end, bool new_block, FILE *out);
+int do_raw_url(const char *begin, const char *end, bool new_block, FILE *out);
 
 // Prints string escaped.
 void hprint(FILE *out, const char *begin, const char *end) {
@@ -41,7 +42,7 @@ void hprint(FILE *out, const char *begin, const char *end) {
 // The sign of the return value determines whether a new block should begin, after the consumed text.
 typedef int (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
 
-static parser_t parsers[] = { do_headers, do_paragraph, do_link, do_replacements };
+static parser_t parsers[] = { do_headers, do_paragraph, do_link, do_raw_url, do_replacements };
 
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Headers are block-level elements.
@@ -178,6 +179,47 @@ int do_link(const char *begin, const char *end, bool new_block, FILE *out)
 	}
 
 	return stop - start + 4 /* [[]] */;
+}
+
+int do_raw_url(const char *begin, const char *end, bool new_block, FILE *out)
+{
+	// Eat a scheme followed by a ":". Here are the relevant rules from RFC 3986.
+	// - URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+	// - scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+	// See: <https://www.rfc-editor.org/rfc/rfc3986#section-3.1>
+	const char *p = begin;
+	if (!isalpha(*p)) {
+		return 0;
+	}
+	while (p < end && (isalnum(*p) || *p == '+' || *p == '-' || *p == '.')) {
+		p += 1;
+	}
+	if (p >= end || p[0] != ':') {
+		return 0;
+	}
+	p += 1;
+
+	// Eat the remainder of the URI.
+	// This is not technically correct, but it's a good enough heuristic.
+	const char *q = p;
+	while (q < end && !isspace(*q)) {
+		q += 1;
+	}
+
+        // If there is nothing following the colon, don't accept it as a raw
+        // url. Otherwise we'd incorrectly find a link with the "said" protocol
+        // here: "And he said: blah blah".
+        if (q == p) {
+		return 0;
+	}
+
+	fputs("<a href=\"", out);
+	hprint(out, begin, q);
+	fputs("\">", out);
+	hprint(out, begin, q);
+	fputs("</a>", out);
+
+	return q - begin;
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {

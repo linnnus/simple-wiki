@@ -90,6 +90,30 @@ struct {
 		.input   =  "[[]]",
 		.output  =  "<p><a href=\"\"></a></p>"
 	},
+	{
+		.name    =  "Raw HTTP URL",
+		.input   =  "Here is a http://example.com/examplepage link.",
+		.output  =  "<p>Here is a <a href=\"http://example.com/examplepage\">"
+		            "http://example.com/examplepage</a> link.</p>"
+	},
+	{ // This is interesting because it doesn't contain a "://".
+		.name    =  "Raw mailto URL",
+		.input   =  "mailto:quandale@dingle.com",
+		.output  =  "<p><a href=\"mailto:quandale@dingle.com\">"
+		            "mailto:quandale@dingle.com</a></p>"
+	},
+	{
+		.name    =  "Unnamed URL",
+		.input   =  "[[http //example.com/examplepage]]",
+		.output  =  "<p><a href=\"http //example.com/examplepage\">"
+		            "http //example.com/examplepage</a></p>"
+	},
+	{
+		.name    =  "Named URL",
+		.input   =  "[[http //example.com/examplepage|Example Page]]",
+		.output  =  "<p>"
+		            "<a href=\"http //example.com/examplepage\">Example Page</a></p>"
+	},
 #if 0
 	{
 		.name    =  "Simple unordered list",
@@ -147,24 +171,6 @@ struct {
 		.output  =  "<table><tr><td> A </td><td> B </td></tr>"
 		            "<tr><td> <em>C</em> </td>"
 		            "<td> <strong>D</strong> <br /> E </td></tr></table>"
-	},
-	{
-		.name    =  "Raw URL",
-		.input   =  "http //example.com/examplepage",
-		.output  =  "<p><a href=\"http //example.com/examplepage\">"
-		            "http //example.com/examplepage</a></p>"
-	},
-	{
-		.name    =  "Unnamed URL",
-		.input   =  "[[http //example.com/examplepage]]",
-		.output  =  "<p><a href=\"http //example.com/examplepage\">"
-		            "http //example.com/examplepage</a></p>"
-	},
-	{
-		.name    =  "Named URL",
-		.input   =  "[[http //example.com/examplepage|Example Page]]",
-		.output  =  "<p>"
-		            "<a href=\"http //example.com/examplepage\">Example Page</a></p>"
 	},
 	{
 		.name    =  "Image",
