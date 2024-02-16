@@ -18,6 +18,7 @@ int do_paragraph(const char *begin, const char *end, bool new_block, FILE *out);
 int do_replacements(const char *begin, const char *end, bool new_block, FILE *out);
 int do_link(const char *begin, const char *end, bool new_block, FILE *out);
 int do_raw_url(const char *begin, const char *end, bool new_block, FILE *out);
+int do_emphasis(const char *begin, const char *end, bool new_block, FILE *out);
 
 // Prints string escaped.
 void hprint(FILE *out, const char *begin, const char *end) {
@@ -42,7 +43,7 @@ void hprint(FILE *out, const char *begin, const char *end) {
 // The sign of the return value determines whether a new block should begin, after the consumed text.
 typedef int (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
 
-static parser_t parsers[] = { do_headers, do_paragraph, do_link, do_raw_url, do_replacements };
+static parser_t parsers[] = { do_headers, do_paragraph, do_emphasis, do_link, do_raw_url, do_replacements };
 
 int do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Headers are block-level elements.
@@ -243,6 +244,27 @@ end_url:
 	fputs("</a>", out);
 
 	return q - begin;
+}
+
+int do_emphasis(const char *begin, const char *end, bool new_block, FILE *out) {
+	if (begin + 2 >= end || begin[0] != '/' || begin[1] != '/') {
+		return 0;
+	}
+	const char *start = begin + 2; /* // */
+
+	const char *stop = start;
+	do {
+		stop = strnstr(stop + 1, "//", end - (stop + 1));
+	} while (stop != NULL && stop[-1] == '~' && stop[-1] == ':');
+	if (stop == NULL) {
+		return 0;
+	}
+
+	fputs("<em>", out);
+	process(start, stop, false, out);
+	fputs("</em>", out);
+
+	return stop - start + 4; /* //...// */
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {

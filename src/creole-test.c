@@ -125,6 +125,32 @@ struct {
 		.output  =  "<p>"
 		            "<a href=\"http //example.com/examplepage\">Example Page</a></p>"
 	},
+	{
+		.name    =  "Emphasis",
+		.input   =  "//Emphasis//",
+		.output  =  "<p><em>Emphasis</em></p>"
+	},
+	{
+		.name    =  "Emphasis spans multiple lines",
+		.input   =  "Bold and italics should //be\nable// to cross lines.",
+		.output  =  "<p>Bold and italics should <em>be\nable</em> to cross lines.</p>"
+	},
+	{
+		.name    =  "Emphasis does not cross paragraph boundaries",
+		.input   =  "This text should //not\n\nbe emphased// as it crosses a paragraph boundary.",
+		.output  =  "<p>This text should //not</p>"
+		            "<p>be emphased// as it crosses a paragraph boundary.</p>"
+	},
+	{
+		.name    =  "URL/emphasis ambiguity",
+		.input   =  "This is an //italic// text. This is a url  "
+		            "http://www.wikicreole.org. This is what can go wrong //this "
+		            "should be an italic text//.",
+		.output  =  "<p>This is an <em>italic</em> text. This is a url  "
+		            "<a href=\"http://www.wikicreole.org\">"
+		            "http://www.wikicreole.org</a>. This is what can go wrong "
+		            "<em>this should be an italic text</em>.</p>"
+	},
 #if 0
 	{
 		.name    =  "Simple unordered list",
@@ -198,113 +224,6 @@ struct {
 		.input   =  "**Strong**",
 		.output  =  "<p><strong>Strong</strong></p>"
 	},
-	{
-		.name    =  "Emphasis",
-		.input   =  "//Emphasis//",
-		.output  =  "<p><em>Emphasis</em></p>"
-	},
-	{
-		.name    =  "Multi-line emphasis",
-		.input   =  "Bold and italics should //be\nable// to cross lines.\n\n"
-		            "But, should //not be...\n\n...able// to cross paragraphs.",
-		.output  =  "<p>Bold and italics should <em>be\nable</em> to cross lines.\n</p>"
-		            "<p>\nBut, should //not be...\n</p>"
-		            "<p>\n...able// to cross paragraphs.</p>"
-	},
-	{
-		.name    =  "URL/emphasis ambiguity",
-		.input   =  "This is an //italic// text. This is a url  "
-		            "http //www.wikicreole.org. This is what can go wrong //this "
-		            "should be an italic text//.",
-		.output  =  "<p>This is an <em>italic</em> text. This is a url  "
-		            "<a href=\"http //www.wikicreole.org\">"
-		            "http //www.wikicreole.org</a>. This is what can go wrong "
-		            "<em>this should be an italic text</em>.</p>"
-	},
-	{
-		.name    =  "Difficult emphasis #1",
-		.input   =  "// http //www.link.org //",
-		.output  =  "<p><em> <a href=\"http //www.link.org\">"
-		            "http //www.link.org</a> </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #2",
-		.input   =  "// http //",
-		.output  =  "<p><em> http </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #3",
-		.input   =  "// httphpthtpht //",
-		.output  =  "<p><em> httphpthtpht </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #4",
-		.input   =  "// http  //",
-		.output  =  "<p><em> http  </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #5",
-		.input   =  "// http //",
-		.output  =  "<p>// <a href=\"http //\">http //</a></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #6",
-		.input   =  "// http ////",
-		.output  =  "<p><em> <a href=\"http //\">http //</a></em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #7",
-		.input   =  "//httphpthtphtt//",
-		.output  =  "<p><em>httphpthtphtt</em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #8",
-		.input   =  "//http //link.org//",
-		.output  =  "<p><em><a href=\"http //link.org\">"
-		            "http //link.org</a></em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #9",
-		.input   =  "// ftp //www.link.org //",
-		.output  =  "<p><em> <a href=\"ftp //www.link.org\">"
-		            "ftp //www.link.org</a> </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #10",
-		.input   =  "// ftp //",
-		.output  =  "<p><em> ftp </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #11",
-		.input   =  "// fttpfptftpft //",
-		.output  =  "<p><em> fttpfptftpft </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #12",
-		.input   =  "// ftp  //",
-		.output  =  "<p><em> ftp  </em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #13",
-		.input   =  "// ftp //",
-		.output  =  "<p>// <a href=\"ftp //\">ftp //</a></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #14",
-		.input   =  "// ftp ////",
-		.output  =  "<p><em> <a href=\"ftp //\">ftp //</a></em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #15",
-		.input   =  "//fttpfptftpftt//",
-		.output  =  "<p><em>fttpfptftpftt</em></p>"
-	},
-	{
-		.name    =  "Difficult emphasis #16",
-		.input   =  "//ftp //link.org//",
-		.output  =  "<p><em><a href=\"ftp //link.org\">"
-		            "ftp //link.org</a></em></p>"
-	}
 #endif
 };
 
