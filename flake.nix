@@ -39,14 +39,16 @@
 
           src = ./.;
 
-          nativeBuildInputs = with pkgs; [ pkg-config ];
-          buildInputs = with pkgs; [ libgit2 ];
+          buildPhase = ''
+            make build/creole_test
+          '';
 
           installPhase = ''
             mkdir -p $out/bin
-            make build/creole-test
-            mv build/creole-test $out/bin
+            mv build/creole_test $out/bin
           '';
+
+          meta.mainProgram = "creole_test";
         };
 
         devShell = (pkgs.mkShell.override { inherit stdenv; }) {
