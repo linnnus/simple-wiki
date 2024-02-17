@@ -187,11 +187,21 @@ long do_link(const char *begin, const char *end, bool new_block, FILE *out)
 
 long do_raw_url(const char *begin, const char *end, bool new_block, FILE *out)
 {
+	const char *p = begin;
+
+	// This piece of spaghetti is necessary to handle escaped urls.
+	// These should not actually be turned into anchor tags.
+	// See: <http://www.wikicreole.org/wiki/Creole1.0#section-Creole1.0-EscapeCharacter>
+	bool escaped = false;
+	if (*begin == '~') {
+		escaped = true;
+		p += 1;
+	}
+
 	// Eat a scheme followed by a ":". Here are the relevant rules from RFC 3986.
 	// - URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 	// - scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 	// See: <https://www.rfc-editor.org/rfc/rfc3986#section-3.1>
-	const char *p = begin;
 	if (!isalpha(*p)) {
 		return 0;
 	}
@@ -240,11 +250,15 @@ end_url:
 		q -= 1;
 	}
 
-	fputs("<a href=\"", out);
-	hprint(out, begin, q);
-	fputs("\">", out);
-	hprint(out, begin, q);
-	fputs("</a>", out);
+	if (escaped) {
+		hprint(out, begin + 1 /* ~ */, q);
+	} else {
+		fputs("<a href=\"", out);
+		hprint(out, begin, q);
+		fputs("\">", out);
+		hprint(out, begin, q);
+		fputs("</a>", out);
+	}
 
 	return q - begin;
 }

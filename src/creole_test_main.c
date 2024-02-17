@@ -124,6 +124,11 @@ struct {
 		            "https://wiki.c2.com/</a>.</p>"
 	},
 	{
+		.name    =  "Escaped raw URL",
+		.input   =  "Please don't register ~https://cohost.org/!",
+		.output  =  "<p>Please don't register https://cohost.org/!</p>"
+	},
+	{
 		.name    =  "Unnamed URL",
 		.input   =  "[[http //example.com/examplepage]]",
 		.output  =  "<p><a href=\"http //example.com/examplepage\">"
