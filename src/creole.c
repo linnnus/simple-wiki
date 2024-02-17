@@ -20,6 +20,7 @@ long do_link(const char *begin, const char *end, bool new_block, FILE *out);
 long do_raw_url(const char *begin, const char *end, bool new_block, FILE *out);
 long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out);
 long do_bold(const char *begin, const char *end, bool new_block, FILE *out);
+long do_nowiki_inline(const char *begin, const char *end, bool new_block, FILE *out);
 
 // Prints string escaped.
 void hprint(FILE *out, const char *begin, const char *end) {
@@ -38,13 +39,36 @@ void hprint(FILE *out, const char *begin, const char *end) {
 	}
 }
 
+bool starts_with(const char *haystack_begin, const char *haystack_end, const char *needle) {
+	size_t needle_len = strlen(needle);
+	size_t haystack_len = haystack_end - haystack_begin;
+	if (needle_len > haystack_len) {
+		return false;
+	} else {
+		return memcmp(haystack_begin, needle, needle_len) == 0;
+	}
+}
+
+
 // A parser takes a (sub)string and returns the number of characters consumed, if any.
 //
 // The parameter `new_block` determines whether `begin` points to the beginning of a new block.
 // The sign of the return value determines whether a new block should begin, after the consumed text.
 typedef long (* parser_t)(const char *begin, const char *end, bool new_block, FILE *out);
 
-static parser_t parsers[] = { do_headers, do_paragraph, do_emphasis, do_bold, do_link, do_raw_url, do_replacements };
+static parser_t parsers[] = {
+	// Block-level elements
+	do_headers,
+	do_paragraph, // <p> should be last as it eats anything
+
+	// Inline-level elements
+	do_emphasis,
+	do_bold,
+	do_link,
+	do_raw_url,
+	do_nowiki_inline,
+	do_replacements
+};
 
 long do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
 	if (!new_block) { // Headers are block-level elements.
@@ -118,6 +142,7 @@ static struct {
 	{"~]]", "]]"}, // NOTE: This pattern is duplicated in do_link().
 	{"~//", "//"},
 	{"~**", "**"},
+	{"~{{{", "{{{"},
 	// Characters that have special meaning in HTML
 	// NOTE: These rules are duplicated in hprint().
 	{"<", "&lt;"},
@@ -305,6 +330,41 @@ long do_bold(const char *begin, const char *end, bool new_block, FILE *out) {
 	fputs("</strong>", out);
 
 	return stop - start + 4; /* **...** */
+}
+
+// The inline-level nowiki element.
+// This is specified together with the block-level nowiki element in the spec, but for this parser it makes more sense to treat them as separate.
+// See: <http://www.wikicreole.org/wiki/Creole1.0#section-Creole1.0-NowikiPreformatted>
+long do_nowiki_inline(const char *begin, const char *end, bool new_block, FILE *out) {
+	if (!starts_with(begin, end, "{{{")) {
+		return 0;
+	}
+	const char *start = begin + 3;
+
+	const char *stop = strnstr(start, "}}}", end - start);
+	if (stop == NULL) {
+		return 0;
+	}
+
+	// Include trailing closing braces in the span.
+	while (stop + 3 < end && stop[3] == '}') {
+		stop += 1;
+	}
+
+	const char *trim_start = start;
+	while (isspace(*trim_start)) {
+		trim_start += 1;
+	}
+	const char *trim_stop = stop;
+	while (isspace(trim_stop[-1])) {
+		trim_stop -= 1;
+	}
+
+	fputs("<tt>", out);
+	hprint(out, trim_start, trim_stop);
+	fputs("</tt>", out);
+
+	return 3 + (stop - start) + 3; /* {{{...}}} */
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {

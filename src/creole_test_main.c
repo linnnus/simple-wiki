@@ -201,6 +201,28 @@ struct {
 		.input   =  "//**Strong and emphasized//**",
 		.output  =  "<p><em>**Strong and emphasized</em>**</p>"
 	},
+	{
+		.name    =  "Inline nowiki",
+		.input   =  "Some examples of markup are: {{{** <i>this</i> **}}}",
+		.output  =  "<p>Some examples of markup are: <tt>** &lt;i&gt;this&lt;/i&gt; **</tt></p>"
+	},
+	{
+		.name    =  "Inline nowiki is stripped",
+		.input   =  "{{{  foo  }}}",
+		.output  =  "<p><tt>foo</tt></p>"
+	},
+	{ // Spec does not seem to clear this issue.
+	  // As it becomes a <tt> in their example, I'll assume newlines aren't included verbatim in the output.
+	  // However, for consistency with (e.g.) bold text, they will "work" across line boundaries.
+		.name    =  "Linebreaks in inline nowiki",
+		.input   =  "This should not work {{{foo\nbar}}}",
+		.output  =  "<p>This should not work <tt>foo\nbar</tt></p>"
+	},
+	{
+		.name    =  "Inline nowiki brace helll",
+		.input   =  "Creole: Inline nowiki with closing braces: {{{if (a>b) { b = a; }}}}.",
+		.output  =  "<p>Creole: Inline nowiki with closing braces: <tt>if (a&gt;b) { b = a; }</tt>.</p>"
+	},
 #if 0
 	{
 		.name    =  "Simple unordered list",
