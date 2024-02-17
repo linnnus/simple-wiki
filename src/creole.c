@@ -116,6 +116,8 @@ static struct {
 	// Escaped special characters
 	{"~[[", "[["},
 	{"~]]", "]]"}, // NOTE: This pattern is duplicated in do_link().
+	{"~//", "//"},
+	{"~**", "**"},
 	// Characters that have special meaning in HTML
 	// NOTE: These rules are duplicated in hprint().
 	{"<", "&lt;"},
@@ -256,7 +258,7 @@ long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out) 
 	const char *stop = start;
 	do {
 		stop = strnstr(stop + 1, "//", end - (stop + 1));
-	} while (stop != NULL && stop[-1] == '~' && stop[-1] == ':');
+	} while (stop != NULL && (stop[-1] == '~' || stop[-1] == ':'));
 	if (stop == NULL) {
 		return 0;
 	}

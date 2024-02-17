@@ -136,6 +136,16 @@ struct {
 		.output  =  "<p>Bold and italics should <em>be\nable</em> to cross lines.</p>"
 	},
 	{
+		.name    =  "Emphasised URL",
+		.input   =  "//https://example.com//",
+		.output  =  "<p><em><a href=\"https://example.com\">https://example.com</a></em></p>"
+	},
+	{ // I don't know that this is necessarily //correct// behavior... Let's document it anyways
+		.name    =  "Emphasised URL ending in slash",
+		.input   =  "//https://example.com///",
+		.output  =  "<p><em><a href=\"https://example.com\">https://example.com</a></em>/</p>"
+	},
+	{
 		.name    =  "Emphasis does not cross paragraph boundaries",
 		.input   =  "This text should //not\n\nbe emphased// as it crosses a paragraph boundary.",
 		.output  =  "<p>This text should //not</p>"
@@ -152,9 +162,19 @@ struct {
 		            "<em>this should be an italic text</em>.</p>"
 	},
 	{
+		.name    =  "Escaped emphasis",
+		.input   =  "I //love double ~// slashes//!",
+		.output  =  "<p>I <em>love double // slashes</em>!</p>"
+	},
+	{
 		.name    =  "Bold",
 		.input   =  "**Strong**",
 		.output  =  "<p><strong>Strong</strong></p>"
+	},
+	{
+		.name    =  "Escaped bold",
+		.input   =  "**Strong ~** still strong**",
+		.output  =  "<p><strong>Strong ** still strong</strong></p>"
 	},
 	{
 		.name    =  "Nested bold/italic",
