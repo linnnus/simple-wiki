@@ -151,6 +151,21 @@ struct {
 		            "http://www.wikicreole.org</a>. This is what can go wrong "
 		            "<em>this should be an italic text</em>.</p>"
 	},
+	{
+		.name    =  "Bold",
+		.input   =  "**Strong**",
+		.output  =  "<p><strong>Strong</strong></p>"
+	},
+	{
+		.name    =  "Nested bold/italic",
+		.input   =  "//**Strong and emphasized**//",
+		.output  =  "<p><em><strong>Strong and emphasized</strong></em></p>"
+	},
+	{
+		.name    =  "Alternating bold/italic doesn't work",
+		.input   =  "//**Strong and emphasized//**",
+		.output  =  "<p><em>**Strong and emphasized</em>**</p>"
+	},
 #if 0
 	{
 		.name    =  "Simple unordered list",
@@ -218,11 +233,6 @@ struct {
 		.name    =  "Inline tt",
 		.input   =  "Inline {{{tt}}} example {{{here}}}!",
 		.output  =  "<p>Inline <tt>tt</tt> example <tt>here</tt>!</p>"
-	},
-	{
-		.name    =  "Strong",
-		.input   =  "**Strong**",
-		.output  =  "<p><strong>Strong</strong></p>"
 	},
 #endif
 };
