@@ -170,7 +170,7 @@ long do_replacements(const char *begin, const char *end, bool new_block, FILE *o
 long do_link(const char *begin, const char *end, bool new_block, FILE *out)
 {
 	// Links start with "[[".
-	if (begin + 2 >= end || begin[0] != '[' || begin[1] != '[') {
+	if (!starts_with(begin, end, "[[")) {
 		return 0;
 	}
 	const char *start = begin + 2;
@@ -289,7 +289,7 @@ end_url:
 }
 
 long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out) {
-	if (begin + 2 >= end || begin[0] != '/' || begin[1] != '/') {
+	if (!starts_with(begin, end, "//")) {
 		return 0;
 	}
 	const char *start = begin + 2; /* // */
@@ -312,7 +312,7 @@ long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out) 
 // FIXME: This is //almost// just a copy/paste of do_emphasis. Not very DRY...
 //        The one difficult part is that : should only be treated as an escape character for //.
 long do_bold(const char *begin, const char *end, bool new_block, FILE *out) {
-	if (begin + 2 >= end || begin[0] != '*' || begin[1] != '*') {
+	if (!starts_with(begin, end, "**")) {
 		return 0;
 	}
 	const char *start = begin + 2; /* // */
