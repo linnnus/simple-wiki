@@ -71,6 +71,16 @@ struct {
 		.output  =  "<p><a href=\"MyPage\">My page</a></p>"
 	},
 	{
+		.name    =  "Link with markup in name",
+		.input   =  "[[https://example.com|a **cool** link]]",
+		.output  =  "<p><a href=\"https://example.com\">a <strong>cool</strong> link</a></p>"
+	},
+	{
+		.name    =  "Markup in link address is ignored",
+		.input   =  "[[https://**example**.com/{{wad}}]]",
+		.output  =  "<p><a href=\"https://**example**.com/{{wad}}\">https://**example**.com/{{wad}}</a></p>"
+	},
+	{
 		.name    =  "Escaped link",
 		.input   =  "A paragraph with an ~[[escaped link]].",
 		.output  =  "<p>A paragraph with an [[escaped link]].</p>"
