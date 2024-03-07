@@ -21,10 +21,15 @@ long do_raw_url(const char *begin, const char *end, bool new_block, FILE *out);
 long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out);
 long do_bold(const char *begin, const char *end, bool new_block, FILE *out);
 long do_nowiki_inline(const char *begin, const char *end, bool new_block, FILE *out);
+long do_nowiki_block(const char *begin, const char *end, bool new_block, FILE *out);
 
-// Prints string escaped.
+// Prints string with special HTML characters escaped.
+//
+// Unlike many other functions, this function does not assume that (end >=
+// begin). This simplifies some logic in callers since bracket-matching is prone
+// to off-by-one errors when the brackets are empty.
 void hprint(FILE *out, const char *begin, const char *end) {
-	for (const char *p = begin; p != end; p++) {
+	for (const char *p = begin; p < end; p++) {
 		if (*p == '&') {
 			fputs("&amp;", out);
 		} else if (*p == '"') {
@@ -59,6 +64,7 @@ typedef long (* parser_t)(const char *begin, const char *end, bool new_block, FI
 static parser_t parsers[] = {
 	// Block-level elements
 	do_headers,
+	do_nowiki_block,
 	do_paragraph, // <p> should be last as it eats anything
 
 	// Inline-level elements
@@ -356,7 +362,7 @@ long do_nowiki_inline(const char *begin, const char *end, bool new_block, FILE *
 		trim_start += 1;
 	}
 	const char *trim_stop = stop;
-	while (isspace(trim_stop[-1])) {
+	while (isspace(trim_stop[-1]) && trim_start <= trim_stop - 1) {
 		trim_stop -= 1;
 	}
 
@@ -367,7 +373,27 @@ long do_nowiki_inline(const char *begin, const char *end, bool new_block, FILE *
 	return 3 + (stop - start) + 3; /* {{{...}}} */
 }
 
+long do_nowiki_block(const char *begin, const char *end, bool new_block, FILE *out) {
+	if (!(new_block && starts_with(begin, end, "{{{\n"))) {
+		return 0;
+	}
+	const char *start = begin + 4;
+
+	const char *stop = strnstr(start - 1, "\n}}}", end - (start - 1));
+	if (stop == NULL) {
+		return 0;
+	}
+
+	fputs("<pre><code>", out);
+	hprint(out, start, stop);
+	fputs("</code></pre>", out);
+
+	return -(stop - start + 8);
+}
+
 void process(const char *begin, const char *end, bool new_block, FILE *out) {
+	assert(begin <= end);
+
 	const char *p = begin;
 	while (p < end) {
 		// Eat all newlines if we're starting a block.

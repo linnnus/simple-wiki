@@ -223,6 +223,29 @@ struct {
 		.input   =  "Creole: Inline nowiki with closing braces: {{{if (a>b) { b = a; }}}}.",
 		.output  =  "<p>Creole: Inline nowiki with closing braces: <tt>if (a&gt;b) { b = a; }</tt>.</p>"
 	},
+	{
+		.name    =  "Nowiki block",
+		.input   =  "Here is some stuff:\n\n{{{\nwad\n}}}",
+		.output  =  "<p>Here is some stuff:</p>"
+		            "<pre><code>wad</code></pre>"
+	},
+	{
+		.name    =  "Non-closed nowiki block",
+		.input   =  "Here is some stuff:\n\n{{{\nwad",
+		.output  =  "<p>Here is some stuff:</p>"
+		            "<p>{{{\nwad</p>"
+	},
+	{
+		.name    =  "Empty nowiki block",
+		.input   =  "{{{\n}}}",
+		.output  =  "<pre><code></code></pre>"
+	},
+	{ // Spec: In preformatted blocks, since markers must not be preceded by leading spaces, lines with three closing braces
+	  // which belong to the preformatted block must follow at least one space. In the rendered output, one leading space is removed.
+		.name    =  "",
+		.input   =  "{{{\nif (x != NULL) {\n  for (i = 0; i < size; i++) {\n    if (x[i] > 0) {\n      x[i]--;\n  }}}\n}}}\n",
+		.output  =  "<pre><code>if (x != NULL) {\n  for (i = 0; i &lt; size; i++) {\n    if (x[i] &gt; 0) {\n      x[i]--;\n  }}}</code></pre>",
+	},
 #if 0
 	{
 		.name    =  "Simple unordered list",
