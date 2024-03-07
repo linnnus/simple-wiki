@@ -181,10 +181,20 @@ struct {
 		.input   =  "I //love double ~// slashes//!",
 		.output  =  "<p>I <em>love double // slashes</em>!</p>"
 	},
+	{ // Not sure what the standard demands. Here's our behavior.
+		.name    =  "Empty emphasis",
+		.input   =  "////",
+		.output  =  "<p>////</p>"
+	},
 	{
 		.name    =  "Bold",
 		.input   =  "**Strong**",
 		.output  =  "<p><strong>Strong</strong></p>"
+	},
+	{ // Not sure what the standard demands. Here's our behavior.
+		.name    =  "Empty bold",
+		.input   =  "You f****g asshole!",
+		.output  =  "<p>You f****g asshole!</p>"
 	},
 	{
 		.name    =  "Escaped bold",
