@@ -332,6 +332,7 @@ int print_escaped(FILE *fp, const char *string, size_t length) {
                char from;
                const char *to;
        } replacements[] = {
+               { '\\', "\\\\" },
                { '\t', "\\t" },
                { '\n', "\\n" },
                { '"', "\\\"" },
