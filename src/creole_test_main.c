@@ -257,6 +257,11 @@ struct {
 		.output  =  "<pre><code>if (x != NULL) {\n  for (i = 0; i &lt; size; i++) {\n    if (x[i] &gt; 0) {\n      x[i]--;\n  }}}</code></pre>",
 	},
 	{
+		.name    =  "Inline tt",
+		.input   =  "Inline {{{tt}}} example {{{here}}}!",
+		.output  =  "<p>Inline <tt>tt</tt> example <tt>here</tt>!</p>"
+	},
+	{
 		.name    =  "Simple unordered list",
 		.input   =  "* list item\n*list item 2",
 		.output  =  "<ul><li> list item<li>list item 2</ul>"
@@ -328,11 +333,6 @@ struct {
 		.name    =  "Image",
 		.input   =  "{{image.gif|my image}}",
 		.output  =  "<p><img src=\"image.gif\" alt=\"my image\"/></p>"
-	},
-	{
-		.name    =  "Inline tt",
-		.input   =  "Inline {{{tt}}} example {{{here}}}!",
-		.output  =  "<p>Inline <tt>tt</tt> example <tt>here</tt>!</p>"
 	},
 #endif
 };
