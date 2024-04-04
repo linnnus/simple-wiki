@@ -296,6 +296,11 @@ struct {
 		.input   =  "## Sublist item",
 		.output  =  "<p>## Sublist item</p>"
 	},
+	{
+		.name    =  "Horizontal rule",
+		.input   =  "Some text\n\n----\n\nSome more text",
+		.output  =  "<p>Some text</p><hr /><p>Some more text</p>"
+	},
 #if 0
 	{
 		.name    =  "Ordered item with ordered sublist",
@@ -306,11 +311,6 @@ struct {
 		.name    =  "Unordered item with ordered sublist",
 		.input   =  "* Item\n*# Subitem",
 		.output  =  "<ul><li> Item<ol>\n<li> Subitem</li></ol></li></ul>"
-	},
-	{
-		.name    =  "Horizontal rule",
-		.input   =  "Some text\n----\nSome more text",
-		.output  =  "<p>Some text</p><hr /><p>Some more text</p>"
 	},
 	{
 		.name    =  "Preformatted block",

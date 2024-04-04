@@ -24,6 +24,7 @@ long do_bold(const char *begin, const char *end, bool new_block, FILE *out);
 long do_nowiki_inline(const char *begin, const char *end, bool new_block, FILE *out);
 long do_nowiki_block(const char *begin, const char *end, bool new_block, FILE *out);
 long do_list(const char *begin, const char *end, bool new_block, FILE *out);
+long do_horizontal_rule(const char *begin, const char *end, bool new_block, FILE *out);
 
 // Prints string with special HTML characters escaped.
 //
@@ -89,6 +90,7 @@ static parser_t parsers[] = {
 	do_headers,
 	do_nowiki_block,
 	do_list,
+	do_horizontal_rule,
 	do_paragraph, // <p> should be last as it eats anything
 
 	// Inline-level elements
@@ -97,7 +99,8 @@ static parser_t parsers[] = {
 	do_link,
 	do_raw_url,
 	do_nowiki_inline,
-	do_replacements
+	do_replacements,
+
 };
 
 long do_headers(const char *begin, const char *end, bool new_block, FILE *out) {
@@ -506,6 +509,26 @@ long do_list(const char *begin, const char *end, bool new_block, FILE *out) {
 	}
 
 	return -(item_end - begin);
+}
+
+long do_horizontal_rule(const char *begin, const char *end, bool new_block, FILE *out) {
+	if (!new_block) {
+		return 0;
+	}
+
+	unsigned length = 0;
+	const char *q = begin;
+	while (q < end && *q == '-') {
+		q++;
+	}
+
+	// Anything at least 4 hyphens long is a horizontal rule.
+	// See: http://www.wikicreole.org/wiki/HorizontalRuleReasoning
+	if (length >= 4) {
+		fputs("<hr>", out);
+	}
+
+	return q - end;
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {
