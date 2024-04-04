@@ -252,25 +252,34 @@ struct {
 	},
 	{ // Spec: In preformatted blocks, since markers must not be preceded by leading spaces, lines with three closing braces
 	  // which belong to the preformatted block must follow at least one space. In the rendered output, one leading space is removed.
-		.name    =  "",
+		.name    =  "Whitespace before }}} stripped",
 		.input   =  "{{{\nif (x != NULL) {\n  for (i = 0; i < size; i++) {\n    if (x[i] > 0) {\n      x[i]--;\n  }}}\n}}}\n",
 		.output  =  "<pre><code>if (x != NULL) {\n  for (i = 0; i &lt; size; i++) {\n    if (x[i] &gt; 0) {\n      x[i]--;\n  }}}</code></pre>",
 	},
-#if 0
 	{
 		.name    =  "Simple unordered list",
 		.input   =  "* list item\n*list item 2",
-		.output  =  "<ul><li> list item</li>\n<li>list item 2</li></ul>"
+		.output  =  "<ul><li> list item<li>list item 2</ul>"
 	},
 	{
 		.name    =  "Simple ordered list",
 		.input   =  "# list item\n#list item 2",
-		.output  =  "<ol><li> list item</li>\n<li>list item 2</li></ol>"
+		.output  =  "<ol><li> list item<li>list item 2</ol>"
 	},
 	{
 		.name    =  "Unordered item with unordered sublist",
 		.input   =  "* Item\n** Subitem",
-		.output  =  "<ul><li> Item<ul>\n<li> Subitem</li></ul></li></ul>"
+		.output  =  "<ul><li> Item<ul><li> Subitem</ul></ul>"
+	},
+	{
+		.name    =  "Unwindling deeply nested list",
+		.input   =  "* A\n** B\n*** C\n**** D\n***** E",
+		.output  =  "<ul><li> A<ul><li> B<ul><li> C<ul><li> D<ul><li> E</ul></ul></ul></ul></ul>"
+	},
+	{
+		.name    =  "Leading spaces ignored in lists",
+		.input   =  "  * Item 1\n  * Item 2\n    **  Item 2.1\n     ** Item 2.2\n",
+		.output  =  "<ul><li> Item 1\n  <li> Item 2\n    <ul><li>  Item 2.1\n     <li> Item 2.2</ul></ul>"
 	},
 	{
 		.name    =  "Unordered sublist without initial tag",
@@ -278,14 +287,15 @@ struct {
 		.output  =  "<p>** Sublist item</p>"
 	},
 	{
-		.name    =  "Ordered item with ordered sublist",
-		.input   =  "# Item\n## Subitem",
-		.output  =  "<ol><li> Item<ol>\n<li> Subitem</li></ol></li></ol>"
-	},
-	{
 		.name    =  "Ordered sublist without initial tag",
 		.input   =  "## Sublist item",
 		.output  =  "<p>## Sublist item</p>"
+	},
+#if 0
+	{
+		.name    =  "Ordered item with ordered sublist",
+		.input   =  "# Item\n## Subitem",
+		.output  =  "<ol><li> Item<ol>\n<li> Subitem</li></ol></li></ol>"
 	},
 	{
 		.name    =  "Unordered item with ordered sublist",

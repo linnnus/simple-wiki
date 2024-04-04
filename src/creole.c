@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <regex.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -22,6 +23,7 @@ long do_emphasis(const char *begin, const char *end, bool new_block, FILE *out);
 long do_bold(const char *begin, const char *end, bool new_block, FILE *out);
 long do_nowiki_inline(const char *begin, const char *end, bool new_block, FILE *out);
 long do_nowiki_block(const char *begin, const char *end, bool new_block, FILE *out);
+long do_list(const char *begin, const char *end, bool new_block, FILE *out);
 
 // Prints string with special HTML characters escaped.
 //
@@ -54,6 +56,27 @@ bool starts_with(const char *haystack_begin, const char *haystack_end, const cha
 	}
 }
 
+const char *find_char(const char *haystack_begin, const char *haystack_end, char needle) {
+	for (const char *p = haystack_begin; p < haystack_end; ++p) {
+		if (*p == needle) {
+			return p;
+		}
+	}
+
+	return haystack_end;
+}
+
+bool contains_only_spaces(const char *begin, const char *end) {
+	assert(begin <= end);
+
+	for (const char *p = begin; p < end; ++p) {
+		if (!isspace(*p)) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 // A parser takes a (sub)string and returns the number of characters consumed, if any.
 //
@@ -65,6 +88,7 @@ static parser_t parsers[] = {
 	// Block-level elements
 	do_headers,
 	do_nowiki_block,
+	do_list,
 	do_paragraph, // <p> should be last as it eats anything
 
 	// Inline-level elements
@@ -391,8 +415,103 @@ long do_nowiki_block(const char *begin, const char *end, bool new_block, FILE *o
 	return -(stop - start + 8);
 }
 
+// TODO: We still do not handle mixing ol/ul in nested lists.
+//       See: http://www.wikicreole.org/wiki/Lists#section-Lists-Mixing
+long do_list(const char *begin, const char *end, bool new_block, FILE *out) {
+	// FIXME: Some sample documents allow a list to start without begin
+	// separated form the above text by \n\n. In order to allow that, we
+	// would need to know if the current * is at the start of a line.
+	if (!new_block) {
+		return 0;
+	}
+
+	const char *begin_stripped = begin;
+	while (*begin_stripped == ' ' || *begin_stripped == '\t') {
+		begin_stripped++;
+	}
+
+	char marker;
+	if (starts_with(begin_stripped, end, "* ")) {
+		fputs("<ul>", out);
+		marker = '*';
+	} else if (starts_with(begin_stripped, end, "# ")) {
+		fputs("<ol>", out);
+		marker = '#';
+	} else {
+		return 0;
+	}
+
+	bool more_items = true;
+	unsigned current_level = 1;
+	const char *item_begin = begin_stripped, *item_end;
+	while (more_items) {
+		// At this point in the code, item_begin should point to the
+		// first star that marks the start of a new list item. We will start by reading the depth.
+		unsigned level = 0;
+		while (*item_begin == marker && item_begin + 1 < end) {
+			item_begin++;
+			level++;
+		}
+
+		if (level > current_level) {
+			while (level > current_level) {
+				fputs((marker == '*') ? "<ul>" : "<ol>", out);
+				current_level += 1;
+			}
+		} else if (level < current_level){
+			while (level < current_level) {
+				fputs((marker == '*') ? "</ul>" : "</ol>", out);
+				current_level -= 1;
+			}
+		}
+
+		// This part essentailly emulates the regular expression /\n\n|\n[ \t]*\*|$/.
+		item_end = item_begin;
+		while (true) {
+			if (starts_with(item_end, end, "\n\n")) {
+				more_items = false;
+				break;
+			} else if (item_end == end) {
+				more_items = false;
+				break;
+			} else if (item_end < end && *item_end == '\n') {
+				const char *q = item_end + 1;
+				while (q < end && (*q == ' ' || *q == '\t'))
+					q += 1;
+
+				if (q < end && *q == marker) {
+					// Include the final newline in the output; will be eaten by special case in process().
+					item_end = q;
+					break;
+				}
+			}
+
+			item_end++;
+		}
+
+		// Note how we don't close the <li> tag! We can avoid some
+		// tricky logic by using the fact that <li> is a self-closing tag.
+		//
+		// See: https://html.spec.whatwg.org/#syntax-tag-omission
+		// See: https://html.spec.whatwg.org/#the-li-element
+		fputs("<li>", out);
+		process(item_begin, item_end, false, out);
+
+		item_begin = item_end;
+	}
+
+	while (current_level > 0) {
+		fputs((marker == '*') ? "</ul>" : "</ol>", out);
+		current_level -= 1;
+	}
+
+	return -(item_end - begin);
+}
+
 void process(const char *begin, const char *end, bool new_block, FILE *out) {
 	assert(begin <= end);
+
+	// DEBUG("Processing: %.*s\n", (int)(end - begin), begin);
 
 	const char *p = begin;
 	while (p < end) {
