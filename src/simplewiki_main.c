@@ -6,11 +6,14 @@
 // #include <assert.h>
 #include <errno.h>     // errno, EEXIST
 #include <git2.h>      // git_*
+#include <unistd.h>    // link
 #include <stdbool.h>   // false
 #include <stdio.h>
 #include <stdlib.h>    // EXIT_SUCCESS
 #include <sys/stat.h>  // mkdir
 #include <sys/types.h> // mode_t
+
+#define REF "refs/heads/master"
 
 void xmkdir(const char *path, mode_t mode, bool exist_ok) {
 	if (mkdir(path, mode) < 0) {
@@ -19,6 +22,13 @@ void xmkdir(const char *path, mode_t mode, bool exist_ok) {
 		} else {
 			die_errno("failed to mkdir %s", path);
 		}
+	}
+}
+
+void xsymlink(const char *source_path, const char *target_path)
+{
+	if (symlink(source_path, target_path) < 0) {
+		die_errno("failed to link '%s' => '%s'", target_path, source_path);
 	}
 }
 
@@ -138,30 +148,47 @@ int main(int argc, char *argv[])
 		die_git("open repository");
 	}
 
-	// Find HEAD.
-	struct git_object *head;
-	const struct git_oid *head_id;
-	if (git_revparse_single(&head, repo, "HEAD") < 0) {
-		die_git("parse HEAD");
-	}
-	head_id = git_object_id(head);
-	git_object_free(head);
-
-	// Get a handle to the tree at head.
-	struct git_commit *commit;
-	if (git_commit_lookup(&commit, repo, head_id) < 0) {
-		die_git("look up head commit");
-	}
-	struct git_tree *tree;
-	if (git_commit_tree(&tree, commit) < 0) {
-		die_git("get tree for commit %s", git_oid_tostr_s(git_commit_id(commit)));
-	}
+	// Create a revision walker to iterate commits on the main branch.
+	git_revwalk *walker = NULL;
+	git_revwalk_new(&walker, repo);
+	git_revwalk_push_ref(walker, REF);
 
 	// Create the initial output directory.
 	xmkdir(out_path, 0755, true);
 
-	struct arena a = arena_create(1024);
-	list_tree(&a, repo, tree, out_path);
+	struct arena a = arena_create(2048);
+	git_oid commit_oid;
+	while (git_revwalk_next(&commit_oid, walker) == 0) {
+		const char *commit_sha = git_oid_tostr_s(&commit_oid);
+
+		git_commit *commit = NULL;
+		if (git_commit_lookup(&commit, repo, &commit_oid) < 0) {
+			die_git("find commit %s", commit_sha);
+		}
+
+		struct git_tree *tree;
+		if (git_commit_tree(&tree, commit) < 0) {
+			die_git("get tree for commit %s", commit_sha);
+		}
+
+		const char *prefix = joinpath(&a, out_path, commit_sha);
+		xmkdir(prefix, 0755, true);
+		list_tree(&a, repo, tree, prefix);
+
+		a.used = 0; // reset arena after each iteration
+		git_commit_free(commit);
+		git_tree_free(tree);
+	}
+
+	// Create a symbolic link to the latest commit.
+	git_oid latest_commit;
+	if (git_reference_name_to_id(&latest_commit, repo, REF) < 0) {
+		die_git("Failed to resolve " REF " to commit");
+	}
+	const char *source = git_oid_tostr_s(&latest_commit);
+	const char *target = joinpath(&a, out_path, "latest");
+	xsymlink(source, target);
+
 #ifndef NDEBUG
 	arena_destroy(&a);
 #endif
