@@ -528,7 +528,7 @@ long do_horizontal_rule(const char *begin, const char *end, bool new_block, FILE
 		fputs("<hr>", out);
 	}
 
-	return q - end;
+	return length;
 }
 
 void process(const char *begin, const char *end, bool new_block, FILE *out) {
